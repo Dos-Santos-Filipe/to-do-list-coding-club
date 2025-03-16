@@ -16,7 +16,13 @@ function App() {
   return (
     <div className="main">
       <h1 className="title">To-do List</h1>
-      <div className="list-container"></div>
+      <div className="list-container">
+        {tasks.map((task, index) => (
+          <div className="list-item" key={index}>
+            {task}
+          </div>
+        ))}
+      </div>
       <div className="form">
         <input
           type="text"
