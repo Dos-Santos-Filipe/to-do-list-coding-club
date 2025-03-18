@@ -4,6 +4,8 @@ import "./App.css";
 function App() {
   const [tasks, setTasks] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState("");
+  const [editIndex, setEditIndex] = useState<number>(-1);
+  const [editValue, setEditValue] = useState("");
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(event.target.value);
@@ -14,11 +16,16 @@ function App() {
     setInputValue("");
   };
 
+  const editTask = (index: number) => {
+    setEditIndex(index);
+    setEditValue(tasks[index]);
+  };
+
   const deleteTask = (index: number) => {
     const tempTasks = [...tasks];
     tempTasks.splice(index, 1);
     setTasks(tempTasks);
-  }
+  };
 
   return (
     <div className="main">
@@ -27,7 +34,17 @@ function App() {
         {tasks.map((task, index) => (
           <div className="list-item" key={index}>
             {task}
-            <button className="delete-btn" onClick={() => deleteTask(index)}>X</button>
+            <input
+              type="text"
+            />
+            <div className="btns-container">
+              <button className="edit-btn" onClick={() => editTask(index)}>
+                T
+              </button>
+              <button className="delete-btn" onClick={() => deleteTask(index)}>
+                X
+              </button>
+            </div>
           </div>
         ))}
       </div>
