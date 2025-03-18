@@ -9,9 +9,16 @@ function App() {
     setInputValue(event.target.value);
   };
   const addTask = () => {
+    if (inputValue.trim() === "") return;
     setTasks([...tasks, inputValue]);
     setInputValue("");
   };
+
+  const deleteTask = (index: number) => {
+    const tempTasks = [...tasks];
+    tempTasks.splice(index, 1);
+    setTasks(tempTasks);
+  }
 
   return (
     <div className="main">
@@ -20,6 +27,7 @@ function App() {
         {tasks.map((task, index) => (
           <div className="list-item" key={index}>
             {task}
+            <button className="delete-btn" onClick={() => deleteTask(index)}>X</button>
           </div>
         ))}
       </div>
