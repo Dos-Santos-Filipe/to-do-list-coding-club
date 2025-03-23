@@ -21,6 +21,15 @@ function App() {
     setEditValue(tasks[index]);
   };
 
+  const saveEditTask = () => {
+    if (editValue.trim() === "") return;
+    const tempTasks = [...tasks];
+    tempTasks[editIndex] = editValue;
+    setTasks(tempTasks);
+    setEditIndex(-1);
+    setEditValue("");
+  };
+
   const deleteTask = (index: number) => {
     const tempTasks = [...tasks];
     tempTasks.splice(index, 1);
@@ -33,18 +42,32 @@ function App() {
       <div className="list-container">
         {tasks.map((task, index) => (
           <div className="list-item" key={index}>
-            {task}
-            <input
-              type="text"
-            />
-            <div className="btns-container">
-              <button className="edit-btn" onClick={() => editTask(index)}>
-                T
-              </button>
-              <button className="delete-btn" onClick={() => deleteTask(index)}>
-                X
-              </button>
-            </div>
+            {editIndex === index ? (
+              <div className="edit-container">
+                <input
+                  type="text"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                />
+                <button className="save-btn" onClick={saveEditTask}>Save</button>
+                <button className="cancel-btn" onClick={() => setEditIndex(-1)}>Cancel</button>
+              </div>
+            ) : (
+              <div className="task-container">
+                <span className="task">{task}</span>
+                <div className="btns-container">
+                  <button className="edit-btn" onClick={() => editTask(index)}>
+                    Edit
+                  </button>
+                  <button
+                    className="delete-btn"
+                    onClick={() => deleteTask(index)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
