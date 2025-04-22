@@ -6,19 +6,19 @@ import "./App.css";
 const apiUrl = "http://localhost:3200/api";
 
 type Task = {
-  id: number;
+  id?: number;
   title: string;
   status: string;
 };
 
-const getTasks = async () => {
+const apiGetTasks = async () => {
   const response = await fetch(`${apiUrl}/tasks`, { method: "GET" });
   const res = await response.json();
   return res.data;
 };
 
-const saveTask = async (task: Task) => {
-  const response = await fetch(apiUrl, {
+const apiSaveTask = async (task: Task) => {
+  const response = await fetch(`${apiUrl}/task`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(task),
@@ -27,8 +27,8 @@ const saveTask = async (task: Task) => {
   return data;
 };
 
-const deleteTask = async (taskId: { id: number }) => {
-  await fetch(`${apiUrl}/${taskId.id}`, { method: "DELETE" });
+const apiDeleteTask = async (taskId: { id: number }) => {
+  await fetch(`${apiUrl}/task/${taskId.id}`, { method: "DELETE" });
 };
 
 // API ends
@@ -42,28 +42,37 @@ function App() {
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(event.target.value);
   };
-  const addTask = () => {
+  const addTask = async () => {
     if (inputValue.trim() === "") return;
 
-    const newTask = {
+    const newTask: Task = {
       title: inputValue,
       status: "incomplete"
-    }
+    };
 
-    const savedTask = saveTask(newTask);
+    const savedTask = await apiSaveTask(newTask);
     setTasks([...tasks, savedTask]);
     setInputValue("");
   };
 
   const editTask = (index: number) => {
     setEditIndex(index);
-    setEditValue(tasks[index]);
+    setEditValue(tasks[index].title);
   };
 
-  const saveEditTask = () => {
+  const saveEditTask = async () => {
     if (editValue.trim() === "") return;
+
+    const editedTask: Task = { id: tasks[editIndex].id, title: editValue, status: tasks[editIndex].status };
+    const res = await fetch(`${apiUrl}/task/${editedTask.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(editedTask),
+    });
+
+    const updatedTasks = await res.json();
     const tempTasks = [...tasks];
-    tempTasks[editIndex] = editValue;
+    tempTasks[editIndex] = updatedTasks;
     setTasks(tempTasks);
     setEditIndex(-1);
     setEditValue("");
@@ -71,7 +80,7 @@ function App() {
 
   const deleteTask = (index: number) => {
     const taskToDelete = tasks[index];
-    deleteTask(taskToDelete.id);
+    apiDeleteTask({ id: taskToDelete.id });
     
     const tempTasks = [...tasks];
     tempTasks.splice(index, 1);
@@ -80,7 +89,7 @@ function App() {
 
   useEffect(() => {
     const fetchTasks = async () => {
-      const res = await getTasks();
+      const res = await apiGetTasks();
       setTasks(res);
     };
     fetchTasks();
@@ -106,9 +115,9 @@ function App() {
               <div className="task-container">
                 <span className="task">{task.title}</span>
                 <div className="btns-container">
-                  {/* <button className="edit-btn" onClick={() => editTask(index)}>
+                  <button className="edit-btn" onClick={() => editTask(index)}>
                     Edit
-                  </button> */}
+                  </button>
                   <button
                     className="delete-btn"
                     onClick={() => deleteTask(index)}
