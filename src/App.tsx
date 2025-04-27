@@ -46,6 +46,7 @@ function App() {
     if (inputValue.trim() === "") return;
 
     const newTask: Task = {
+      id: Date.now(),
       title: inputValue,
       status: "incomplete"
     };
@@ -55,36 +56,41 @@ function App() {
     setInputValue("");
   };
 
-  const editTask = (index: number) => {
-    setEditIndex(index);
-    setEditValue(tasks[index].title);
+  const editTask = (id: number) => {
+    const task = tasks.find((task) => task.id === id);
+    if (!task) return;
+    setEditIndex(id);
+    setEditValue(task.title);
   };
 
   const saveEditTask = async () => {
     if (editValue.trim() === "") return;
 
-    const editedTask: Task = { id: tasks[editIndex].id, title: editValue, status: tasks[editIndex].status };
-    const res = await fetch(`${apiUrl}/task/${editedTask.id}`, {
+    const editedTask = tasks.find((task) => task.id === editIndex);
+    if (!editedTask) return;
+
+    const update = { ...editedTask, title: editValue };
+
+    const res = await fetch(`${apiUrl}/task/${update.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(editedTask),
+      body: JSON.stringify(update),
     });
 
     const updatedTasks = await res.json();
-    const tempTasks = [...tasks];
-    tempTasks[editIndex] = updatedTasks;
-    setTasks(tempTasks);
+    setTasks(tasks.map(task => task.id === updatedTasks.id ? updatedTasks : task));
     setEditIndex(-1);
     setEditValue("");
   };
 
-  const deleteTask = (index: number) => {
-    const taskToDelete = tasks[index];
-    apiDeleteTask({ id: taskToDelete.id });
-    
-    const tempTasks = [...tasks];
-    tempTasks.splice(index, 1);
-    setTasks(tempTasks);
+  const deleteTask = async (id: number) => {
+    try{
+      await apiDeleteTask({ id });
+      
+      setTasks(tasks.filter((task) => task.id !== id));
+    } catch (error) {
+      console.error("Error deleting task: ", error); 
+    }
   };
 
   useEffect(() => {
@@ -99,9 +105,9 @@ function App() {
     <div className="main">
       <h1 className="title">To-do List</h1>
       <div className="list-container">
-        {tasks.map((task, index) => (
-          <div className="list-item" key={index}>
-            {editIndex === index ? (
+        {tasks.length === 0 ? <p>No Tasks yet</p> : tasks.map((task) => (
+          <div className="list-item" key={task.id}>
+            {editIndex === task.id ? (
               <div className="edit-container">
                 <input
                   type="text"
@@ -115,12 +121,12 @@ function App() {
               <div className="task-container">
                 <span className="task">{task.title}</span>
                 <div className="btns-container">
-                  <button className="edit-btn" onClick={() => editTask(index)}>
+                  <button className="edit-btn" onClick={() => editTask(task.id!)}>
                     Edit
                   </button>
                   <button
                     className="delete-btn"
-                    onClick={() => deleteTask(index)}
+                    onClick={() => deleteTask(task.id!)}
                   >
                     Delete
                   </button>
