@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { nanoid } from "nanoid";
 import "./App.css";
 
 
@@ -6,7 +7,7 @@ import "./App.css";
 const apiUrl = "http://localhost:3200/api";
 
 type Task = {
-  id?: number;
+  id: string;
   title: string;
   status: string;
 };
@@ -27,7 +28,7 @@ const apiSaveTask = async (task: Task) => {
   return data;
 };
 
-const apiDeleteTask = async (taskId: { id: number }) => {
+const apiDeleteTask = async (taskId: { id: string }) => {
   await fetch(`${apiUrl}/task/${taskId.id}`, { method: "DELETE" });
 };
 
@@ -36,7 +37,7 @@ const apiDeleteTask = async (taskId: { id: number }) => {
 function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [inputValue, setInputValue] = useState("");
-  const [editIndex, setEditIndex] = useState<number>(-1);
+  const [editIndex, setEditIndex] = useState("");
   const [editValue, setEditValue] = useState("");
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,7 +47,7 @@ function App() {
     if (inputValue.trim() === "") return;
 
     const newTask: Task = {
-      id: Date.now(),
+      id: nanoid(),
       title: inputValue,
       status: "incomplete"
     };
@@ -56,7 +57,7 @@ function App() {
     setInputValue("");
   };
 
-  const editTask = (id: number) => {
+  const editTask = (id: string) => {
     const task = tasks.find((task) => task.id === id);
     if (!task) return;
     setEditIndex(id);
@@ -79,11 +80,11 @@ function App() {
 
     const updatedTasks = await res.json();
     setTasks(tasks.map(task => task.id === updatedTasks.id ? updatedTasks : task));
-    setEditIndex(-1);
+    setEditIndex("");
     setEditValue("");
   };
 
-  const deleteTask = async (id: number) => {
+  const deleteTask = async (id: string) => {
     try{
       await apiDeleteTask({ id });
       
@@ -115,18 +116,18 @@ function App() {
                   onChange={(e) => setEditValue(e.target.value)}
                 />
                 <button className="save-btn" onClick={saveEditTask}>Save</button>
-                <button className="cancel-btn" onClick={() => setEditIndex(-1)}>Cancel</button>
+                <button className="cancel-btn" onClick={() => setEditIndex("")}>Cancel</button>
               </div>
             ) : (
               <div className="task-container">
                 <span className="task">{task.title}</span>
                 <div className="btns-container">
-                  <button className="edit-btn" onClick={() => editTask(task.id!)}>
+                  <button className="edit-btn" onClick={() => task.id && editTask(task.id)}>
                     Edit
                   </button>
                   <button
                     className="delete-btn"
-                    onClick={() => deleteTask(task.id!)}
+                    onClick={() => task.id && deleteTask(task.id)}
                   >
                     Delete
                   </button>
